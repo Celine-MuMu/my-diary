@@ -11,6 +11,7 @@ const prevDayButton = document.getElementById("prev-day");
 const nextDayButton = document.getElementById("next-day");
 const bottom = document.querySelector(".bottom");
 const backToTodayButton = document.getElementById("back-to-today");
+const micButton = document.getElementById("mic-button");
 
 // ---------- 日期 ----------
 // 一天在凌晨 4 點換日：半夜 1 點寫的，還算前一天
@@ -127,6 +128,7 @@ function scrollToBottom() {
 
 // 送出：存起來、清空輸入框、重新畫面
 function send() {
+  stopListening(); // 還在聽的話先停下來
   const text = input.value.trim();
   if (!text) return;
 
@@ -143,6 +145,63 @@ function resizeInput() {
   input.style.height = "auto";
   input.style.height = input.scrollHeight + "px";
 }
+
+// ---------- 語音輸入 ----------
+// 用瀏覽器內建的語音辨識，把說的話變成文字放進輸入框
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;    // 正在聽的時候才會有東西
+let 開始說話前的文字 = "";  // 讓語音接在原本打的字後面
+
+function startListening() {
+  if (!SpeechRecognition) {
+    alert("這個瀏覽器不支援語音輸入，可以改用鍵盤上的麥克風喔。");
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = "zh-TW";          // 辨識繁體中文
+  recognition.interimResults = true;   // 邊說邊顯示
+  recognition.continuous = true;       // 停頓一下也繼續聽
+
+  開始說話前的文字 = input.value;
+
+  // 每次辨識出新的字，就更新輸入框
+  recognition.onresult = function (event) {
+    let spoken = "";
+    for (const result of event.results) {
+      spoken += result[0].transcript;
+    }
+    input.value = 開始說話前的文字 + spoken;
+    resizeInput();
+  };
+
+  recognition.onerror = function (event) {
+    if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+      alert("需要允許使用麥克風。可以到 iPhone 的「設定 → Safari → 麥克風」打開。");
+    }
+  };
+
+  // 停止聆聽時（自己按停，或太久沒說話），按鈕變回原樣
+  recognition.onend = function () {
+    recognition = null;
+    micButton.classList.remove("listening");
+    micButton.setAttribute("aria-label", "語音輸入");
+  };
+
+  recognition.start();
+  micButton.classList.add("listening");
+  micButton.setAttribute("aria-label", "停止語音輸入");
+}
+
+function stopListening() {
+  if (recognition) recognition.stop();
+}
+
+// 按一下開始聽，再按一下停止
+micButton.addEventListener("click", function () {
+  if (recognition) stopListening();
+  else startListening();
+});
 
 // ---------- 綁定按鈕 ----------
 sendButton.addEventListener("click", send);

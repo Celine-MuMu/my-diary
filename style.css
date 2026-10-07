@@ -267,6 +267,17 @@ body {
 /* 麥克風按鈕 */
 .mic-button { color: var(--主色); }
 
+/* 正在聽：變成橘紅色，外圈一直擴散 */
+.mic-button.listening {
+  background: var(--橘紅);
+  color: #fff;
+  animation: listening 1.4s ease-out infinite;
+}
+@keyframes listening {
+  0%   { box-shadow: 0 0 0 0 rgba(232, 97, 60, 0.5); }
+  100% { box-shadow: 0 0 0 14px rgba(232, 97, 60, 0); }
+}
+
 /* 送出按鈕：實心圓 */
 .send-button {
   background: var(--主色);
