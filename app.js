@@ -12,6 +12,7 @@ const nextDayButton = document.getElementById("next-day");
 const bottom = document.querySelector(".bottom");
 const backToTodayButton = document.getElementById("back-to-today");
 const micButton = document.getElementById("mic-button");
+const askTheoButton = document.getElementById("ask-theo");
 
 // ---------- 日期 ----------
 // 一天在凌晨 4 點換日：半夜 1 點寫的，還算前一天
@@ -202,6 +203,60 @@ micButton.addEventListener("click", function () {
   if (recognition) stopListening();
   else startListening();
 });
+
+// ---------- 聽聽 Theo 的想法 ----------
+// 把今天的內容整理成文字，例如「09:12 我：起床好累」
+function todayAsText() {
+  return loadMessages()
+    .filter(function (message) { return dayKeyOf(message.time) === todayKey(); })
+    .map(function (message) {
+      const who = message.role === "me" ? "我" : "Theo";
+      return formatTime(message.time) + " " + who + "：" + message.text;
+    })
+    .join("\n");
+}
+
+// 在聊天區最下面顯示「Theo 正在打字……」
+function showTyping() {
+  const typing = document.createElement("div");
+  typing.className = "message theo";
+  typing.id = "typing";
+  typing.innerHTML = '<div class="name">Theo</div><div class="bubble typing">正在打字……</div>';
+  chat.appendChild(typing);
+  scrollToBottom();
+}
+
+async function askTheo() {
+  currentDay = todayKey();
+  const diary = todayAsText();
+  if (!diary) {
+    alert("今天還沒寫東西，先跟 Theo 說點什麼吧。");
+    return;
+  }
+
+  askTheoButton.disabled = true;
+  showMessages();
+  showTyping();
+
+  const settings = loadSettings();
+  const request =
+    "現在時間 " + formatTime(new Date()) + "。\n" +
+    "以下是她今天到目前為止的日記，也包含你之前的回應：\n\n" +
+    diary + "\n\n" +
+    "請以 Theo 的身分回應她。重點放在你上次回應之後她新寫的內容，但可以連結今天稍早的事。";
+
+  try {
+    const reply = await askAI(buildTheoPrompt(settings.personality), request);
+    addMessage("theo", reply, "reply");
+  } catch (e) {
+    alert(e.message);
+  }
+
+  askTheoButton.disabled = false;
+  showMessages();
+}
+
+askTheoButton.addEventListener("click", askTheo);
 
 // ---------- 設定頁 ----------
 const settingsPage = document.getElementById("settings-page");

@@ -220,6 +220,16 @@ body {
   color: var(--主色);
 }
 .action-button:active { background: rgba(242, 169, 0, 0.12); }
+.action-button:disabled { opacity: 0.5; }
+
+/* Theo 正在打字 */
+.bubble.typing {
+  color: var(--淡文字);
+  animation: typing 1.2s ease-in-out infinite;
+}
+@keyframes typing {
+  50% { opacity: 0.4; }
+}
 
 /* 看以前的日子：藏起輸入區，只留「回到今天」 */
 .back-to-today {
