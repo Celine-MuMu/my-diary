@@ -3,8 +3,17 @@
 // 之後想換成其他 AI，只要改這個檔案
 // ============================================
 
-// 用哪個模型。依序嘗試，前一個找不到就換下一個
-const AI_MODELS = ["gemini-flash-latest", "gemini-2.5-flash"];
+// 用哪個模型。依序嘗試，前一個太忙或找不到就換下一個
+const AI_MODELS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"];
+
+// 這些錯誤代碼代表「這個模型現在不行」，可以換下一個試試
+// 404 找不到模型、500 Google 內部錯誤、503 太忙
+const 可以換模型的錯誤 = [404, 500, 503];
+
+// 等幾毫秒
+function wait(ms) {
+  return new Promise(function (resolve) { setTimeout(resolve, ms); });
+}
 
 // 問 AI 一個問題，回傳 AI 的回答（文字）
 // systemPrompt：告訴 AI 要扮演誰（例如 Theo 的個性）
@@ -15,14 +24,21 @@ async function askAI(systemPrompt, userText, apiKey) {
     throw new Error("還沒有設定 Gemini API 金鑰，請到設定頁貼上。");
   }
 
+  let lastError;
   for (const model of AI_MODELS) {
-    try {
-      return await askModel(model, systemPrompt, userText, apiKey);
-    } catch (e) {
-      // 這個模型找不到（404）就試下一個，其他錯誤直接回報
-      if (e.status !== 404 || model === AI_MODELS[AI_MODELS.length - 1]) throw e;
+    // 每個模型最多試 2 次（太忙的話等 1.5 秒再試一次）
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        return await askModel(model, systemPrompt, userText, apiKey);
+      } catch (e) {
+        lastError = e;
+        if (!可以換模型的錯誤.includes(e.status)) throw e; // 金鑰錯誤等問題，換模型也沒用
+        if (e.status !== 503) break;                     // 不是太忙，就不用重試同一個
+        if (attempt === 1) await wait(1500);
+      }
     }
   }
+  throw lastError;
 }
 
 // 問某一個模型
@@ -56,6 +72,8 @@ async function askModel(model, systemPrompt, userText, apiKey) {
       message = "API 金鑰好像不能用，請到設定頁檢查。";
     } else if (response.status === 404) {
       message = "找不到這個 AI 模型。";
+    } else if (response.status === 503) {
+      message = "Gemini 現在太忙了，等一下再試。";
     } else if (response.status === 429) {
       message = "今天的免費額度用完了，或是問得太快，等一下再試。";
     }
