@@ -4,15 +4,16 @@
 // ============================================
 
 // 用哪個模型。依序嘗試，前一個太忙、太慢或找不到就換下一個
-// thinking：關掉「先思考再回答」，聊天不需要，關掉會快很多
+// 這些模型都會「先思考再回答」，回應比較有深度，但要多等幾秒
+// （想要更快的話，可以加上 thinking: { thinkingBudget: 0 } 關掉思考）
 const AI_MODELS = [
-  { name: "gemini-2.5-flash", thinking: { thinkingBudget: 0 } },
-  { name: "gemini-flash-lite-latest" },
   { name: "gemini-flash-latest" },
+  { name: "gemini-2.5-flash" },
+  { name: "gemini-flash-lite-latest" },
 ];
 
-// 一個模型最多等幾秒，超過就換下一個
-const 最多等幾秒 = 15;
+// 一個模型最多等幾秒，超過就換下一個（思考需要時間，所以給久一點）
+const 最多等幾秒 = 40;
 
 // 這些錯誤代表「這個模型現在不行」，可以換下一個試試
 // 404 找不到模型、408 太慢、500 Google 內部錯誤、503 太忙

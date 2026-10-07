@@ -216,12 +216,12 @@ function todayAsText() {
     .join("\n");
 }
 
-// 在聊天區最下面顯示「Theo 正在打字……」
+// 在聊天區最下面顯示「Theo 正在思考……」
 function showTyping() {
   const typing = document.createElement("div");
   typing.className = "message theo";
   typing.id = "typing";
-  typing.innerHTML = '<div class="name">Theo</div><div class="bubble typing">正在打字……</div>';
+  typing.innerHTML = '<div class="name">Theo</div><div class="bubble typing">正在思考……</div>';
   chat.appendChild(typing);
   scrollToBottom();
 }
