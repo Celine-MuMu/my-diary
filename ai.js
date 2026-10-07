@@ -3,17 +3,20 @@
 // 之後想換成其他 AI，只要改這個檔案
 // ============================================
 
-// 用哪個模型。依序嘗試，前一個太忙或找不到就換下一個
-const AI_MODELS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"];
+// 用哪個模型。依序嘗試，前一個太忙、太慢或找不到就換下一個
+// thinking：關掉「先思考再回答」，聊天不需要，關掉會快很多
+const AI_MODELS = [
+  { name: "gemini-2.5-flash", thinking: { thinkingBudget: 0 } },
+  { name: "gemini-flash-lite-latest" },
+  { name: "gemini-flash-latest" },
+];
 
-// 這些錯誤代碼代表「這個模型現在不行」，可以換下一個試試
-// 404 找不到模型、500 Google 內部錯誤、503 太忙
-const 可以換模型的錯誤 = [404, 500, 503];
+// 一個模型最多等幾秒，超過就換下一個
+const 最多等幾秒 = 15;
 
-// 等幾毫秒
-function wait(ms) {
-  return new Promise(function (resolve) { setTimeout(resolve, ms); });
-}
+// 這些錯誤代表「這個模型現在不行」，可以換下一個試試
+// 404 找不到模型、408 太慢、500 Google 內部錯誤、503 太忙
+const 可以換模型的錯誤 = [404, 408, 500, 503];
 
 // 問 AI 一個問題，回傳 AI 的回答（文字）
 // systemPrompt：告訴 AI 要扮演誰（例如 Theo 的個性）
@@ -26,16 +29,11 @@ async function askAI(systemPrompt, userText, apiKey) {
 
   let lastError;
   for (const model of AI_MODELS) {
-    // 每個模型最多試 2 次（太忙的話等 1.5 秒再試一次）
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      try {
-        return await askModel(model, systemPrompt, userText, apiKey);
-      } catch (e) {
-        lastError = e;
-        if (!可以換模型的錯誤.includes(e.status)) throw e; // 金鑰錯誤等問題，換模型也沒用
-        if (e.status !== 503) break;                     // 不是太忙，就不用重試同一個
-        if (attempt === 1) await wait(1500);
-      }
+    try {
+      return await askModel(model, systemPrompt, userText, apiKey);
+    } catch (e) {
+      lastError = e;
+      if (!可以換模型的錯誤.includes(e.status)) throw e; // 金鑰錯誤等問題，換模型也沒用
     }
   }
   throw lastError;
@@ -43,26 +41,43 @@ async function askAI(systemPrompt, userText, apiKey) {
 
 // 問某一個模型
 async function askModel(model, systemPrompt, userText, apiKey) {
-  const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent";
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model.name + ":generateContent";
+
+  const body = {
+    system_instruction: { parts: [{ text: systemPrompt }] },
+    contents: [{ role: "user", parts: [{ text: userText }] }],
+  };
+  if (model.thinking) {
+    body.generationConfig = { thinkingConfig: model.thinking };
+  }
+
+  // 超過時間就放棄這次請求
+  const controller = new AbortController();
+  const timer = setTimeout(function () { controller.abort(); }, 最多等幾秒 * 1000);
 
   let response;
   try {
     response = await fetch(url, {
+      signal: controller.signal,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-goog-api-key": apiKey,
       },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: "user", parts: [{ text: userText }] }],
-      }),
+      body: JSON.stringify(body),
     });
   } catch (e) {
+    clearTimeout(timer);
+    if (e.name === "AbortError") {
+      const error = new Error("Gemini 回得太慢了，等一下再試。");
+      error.status = 408;
+      throw error;
+    }
     throw new Error("連不上網路，請檢查網路後再試一次。");
   }
 
   const data = await response.json().catch(function () { return {}; });
+  clearTimeout(timer);
 
   if (!response.ok) {
     // Google 回傳的錯誤說明，附在訊息後面方便找問題
@@ -79,6 +94,8 @@ async function askModel(model, systemPrompt, userText, apiKey) {
     }
     const error = new Error(message + detail);
     error.status = response.status;
+    // 這個模型不支援關掉思考的話，當作「這個模型不行」，換下一個
+    if (response.status === 400 && /thinking/i.test(data.error?.message || "")) error.status = 404;
     throw error;
   }
 
