@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <!-- viewport-fit=cover：讓畫面延伸到 iPhone 瀏海和底部 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#FFF8E7">
+
+  <!-- T1.2 你來改：App 的名字 -->
+  <title>Theo 日記</title>
+
+  <!-- 加到主畫面用：App 資訊和圖示 -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <!-- T1.2 你來改：主畫面圖示下方顯示的名字 -->
+  <meta name="apple-mobile-web-app-title" content="Theo 日記">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============================================
+       圖示庫：定義一次，下面用 <use href="#名字"> 重複使用
+       圖示來自 Lucide（lucide.dev）
+       ============================================ -->
+  <svg width="0" height="0" style="position:absolute">
+    <symbol id="icon-chevron-left" viewBox="0 0 24 24">
+      <path d="m15 18-6-6 6-6"/>
+    </symbol>
+    <symbol id="icon-chevron-right" viewBox="0 0 24 24">
+      <path d="m9 18 6-6-6-6"/>
+    </symbol>
+    <symbol id="icon-target" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+    </symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24">
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
+    </symbol>
+    <symbol id="icon-mic" viewBox="0 0 24 24">
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>
+    </symbol>
+    <symbol id="icon-send" viewBox="0 0 24 24">
+      <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
+    </symbol>
+    <symbol id="icon-message" viewBox="0 0 24 24">
+      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
+    </symbol>
+    <symbol id="icon-moon" viewBox="0 0 24 24">
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+    </symbol>
+    <symbol id="icon-bell" viewBox="0 0 24 24">
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+    </symbol>
+  </svg>
+
+  <div class="app">
+
+    <!-- ============================================
+         上方：日期列
+         ============================================ -->
+    <header class="top-bar">
+      <div class="date-switcher">
+        <button class="icon-button" id="prev-day" aria-label="前一天">
+          <svg class="icon"><use href="#icon-chevron-left"/></svg>
+        </button>
+        <div class="date-label" id="date-label">
+          <!-- 日期由 app.js 填入 -->
+        </div>
+        <button class="icon-button" id="next-day" aria-label="後一天">
+          <svg class="icon"><use href="#icon-chevron-right"/></svg>
+        </button>
+      </div>
+      <button class="icon-button" id="goals-button" aria-label="目標">
+        <svg class="icon"><use href="#icon-target"/></svg>
+      </button>
+      <button class="icon-button" id="settings-button" aria-label="設定">
+        <svg class="icon"><use href="#icon-settings"/></svg>
+      </button>
+    </header>
+
+    <!-- ============================================
+         中間：聊天區（訊息由 app.js 放進來）
+         ============================================ -->
+    <main class="chat" id="chat"></main>
+
+    <!-- ============================================
+         下方：動作按鈕 + 輸入框
+         ============================================ -->
+    <footer class="bottom">
+      <!-- 看以前的日子時，只會出現這個按鈕 -->
+      <button class="back-to-today" id="back-to-today">回到今天</button>
+
+      <div class="actions">
+        <button class="action-button" id="ask-theo">
+          <svg class="icon"><use href="#icon-message"/></svg>
+          聽聽 Theo 的想法
+        </button>
+        <button class="action-button" id="end-day">
+          <svg class="icon"><use href="#icon-moon"/></svg>
+          結束今天
+        </button>
+      </div>
+
+      <div class="input-row">
+        <!-- T1.2 你來改：輸入框的提示文字 -->
+        <textarea id="input" rows="1" placeholder="欸我跟你說……"></textarea>
+        <button class="icon-button mic-button" id="mic-button" aria-label="語音輸入">
+          <svg class="icon"><use href="#icon-mic"/></svg>
+        </button>
+        <button class="icon-button send-button" id="send-button" aria-label="送出">
+          <svg class="icon"><use href="#icon-send"/></svg>
+        </button>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- 程式：順序很重要，storage.js 要先載入 -->
+  <script src="storage.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>

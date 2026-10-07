@@ -1,0 +1,279 @@
+/* ============================================
+   顏色：想換顏色，只要改這裡
+   ============================================ */
+:root {
+  --背景: #FFF8E7;      /* 奶油白 */
+  --我的泡泡: #FFD966;   /* 暖黃 */
+  --Theo泡泡: #FFFFFF;  /* 白 */
+  --主色: #F2A900;      /* 深暖黃：主要按鈕、標題 */
+  --藍: #3B6EA8;        /* Theo 的名字、連結 */
+  --橘紅: #E8613C;      /* 提醒、重要按鈕 */
+  --文字: #3D3027;      /* 深咖啡 */
+  --淡文字: #9A8B7A;    /* 時間等次要文字 */
+  --邊線: #F0E4C8;
+}
+
+/* ============================================
+   整體
+   ============================================ */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--背景);
+  color: var(--文字);
+  font-family: -apple-system, "PingFang TC", "Noto Sans TC", sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 整個 App 佔滿螢幕：上方日期列、中間聊天、下方輸入區 */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* 線條圖示的共同樣式 */
+.icon {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 只有圖示的圓形按鈕 */
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--文字);
+  cursor: pointer;
+}
+.icon-button:active { background: rgba(0, 0, 0, 0.06); }
+.icon-button:disabled { opacity: 0.25; cursor: default; }
+
+/* ============================================
+   上方：日期列
+   ============================================ */
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  /* iPhone 瀏海的安全距離 */
+  padding: calc(8px + env(safe-area-inset-top)) 8px 8px;
+  background: var(--背景);
+  border-bottom: 1px solid var(--邊線);
+}
+
+.date-switcher {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.date-label {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+}
+.date-label small {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--淡文字);
+}
+
+/* ============================================
+   中間：聊天區
+   ============================================ */
+.chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+}
+
+/* 我說的話：靠右、黃色 */
+.message.me {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+.message.me .bubble {
+  background: var(--我的泡泡);
+  border-bottom-right-radius: 4px;
+}
+
+/* Theo 說的話：靠左、白色 */
+.message.theo {
+  align-self: flex-start;
+}
+.message.theo .bubble {
+  background: var(--Theo泡泡);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 2px rgba(61, 48, 39, 0.08);
+}
+
+.name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--藍);
+  margin: 0 0 2px 4px;
+}
+
+.bubble {
+  padding: 10px 14px;
+  border-radius: 18px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.time {
+  font-size: 12px;
+  color: var(--淡文字);
+  margin: 2px 6px 0;
+}
+
+/* 還沒有訊息時的提示 */
+.empty {
+  margin: auto;
+  color: var(--淡文字);
+  font-size: 15px;
+}
+
+/* 提醒卡片 */
+.reminder {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: #FFF1EC;
+  border-left: 4px solid var(--橘紅);
+  border-radius: 12px;
+}
+.reminder .icon {
+  flex-shrink: 0;
+  color: var(--橘紅);
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+}
+
+/* ============================================
+   下方：動作按鈕 + 輸入框
+   ============================================ */
+.bottom {
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  background: var(--背景);
+  border-top: 1px solid var(--邊線);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.action-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--主色);
+  border-radius: 22px;
+  background: transparent;
+  color: var(--文字);
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.action-button .icon {
+  width: 18px;
+  height: 18px;
+  color: var(--主色);
+}
+.action-button:active { background: rgba(242, 169, 0, 0.12); }
+
+/* 看以前的日子：藏起輸入區，只留「回到今天」 */
+.back-to-today {
+  display: none;
+  width: 100%;
+  min-height: 44px;
+  border: none;
+  border-radius: 22px;
+  background: var(--主色);
+  color: #fff;
+  font-size: 16px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.bottom.read-only .back-to-today { display: block; }
+.bottom.read-only .actions,
+.bottom.read-only .input-row { display: none; }
+
+.input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.input-row textarea {
+  flex: 1;
+  min-height: 44px;
+  max-height: 140px;
+  padding: 10px 16px;
+  border: 1px solid var(--邊線);
+  border-radius: 22px;
+  background: #fff;
+  color: var(--文字);
+  /* iPhone 上字小於 16px 會自動放大畫面，所以至少 16px */
+  font-size: 16px;
+  font-family: inherit;
+  line-height: 1.4;
+  resize: none;
+}
+.input-row textarea:focus {
+  outline: none;
+  border-color: var(--主色);
+}
+
+/* 麥克風按鈕 */
+.mic-button { color: var(--主色); }
+
+/* 送出按鈕：實心圓 */
+.send-button {
+  background: var(--主色);
+  color: #fff;
+}
+.send-button .icon {
+  width: 20px;
+  height: 20px;
+}
+.send-button:active { background: #D99700; }
