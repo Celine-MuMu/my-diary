@@ -42,3 +42,28 @@ function addMessage(role, text, type) {
   saveMessages(messages);
   return message;
 }
+
+// ---------- 設定 ----------
+const 設定存放名稱 = "theo-diary-settings";
+
+// 讀出設定（沒有的話用預設值）
+function loadSettings() {
+  let saved = {};
+  try {
+    saved = JSON.parse(localStorage.getItem(設定存放名稱)) || {};
+  } catch (e) {}
+  return {
+    personality: saved.personality || 預設個性, // Theo 的個性
+    apiKey: saved.apiKey || "",                 // Gemini API 金鑰
+  };
+}
+
+// 更新部分設定，例如 saveSettings({ personality: "溫柔" })
+function saveSettings(changes) {
+  const settings = Object.assign(loadSettings(), changes);
+  try {
+    localStorage.setItem(設定存放名稱, JSON.stringify(settings));
+  } catch (e) {
+    alert("設定存檔失敗。");
+  }
+}

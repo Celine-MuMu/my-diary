@@ -54,6 +54,9 @@
     <symbol id="icon-bell" viewBox="0 0 24 24">
       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
     </symbol>
+    <symbol id="icon-eye" viewBox="0 0 24 24">
+      <path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>
+    </symbol>
   </svg>
 
   <div class="app">
@@ -118,8 +121,45 @@
 
   </div>
 
-  <!-- 程式：順序很重要，storage.js 要先載入 -->
+  <!-- ============================================
+       設定頁（按右上角齒輪打開，蓋在聊天頁上面）
+       ============================================ -->
+  <div class="page" id="settings-page" hidden>
+    <header class="top-bar">
+      <button class="icon-button" id="settings-back" aria-label="返回">
+        <svg class="icon"><use href="#icon-chevron-left"/></svg>
+      </button>
+      <div class="page-title">設定</div>
+      <div class="icon-button" aria-hidden="true"></div>
+    </header>
+
+    <div class="page-body">
+      <section class="setting-section">
+        <h2>Theo 的個性</h2>
+        <!-- 選項由 app.js 根據 theo.js 的「個性列表」產生 -->
+        <div id="personality-options"></div>
+      </section>
+
+      <section class="setting-section">
+        <h2>Gemini API 金鑰</h2>
+        <p class="hint">金鑰只存在這支手機上，只會用來跟 Google Gemini 溝通。</p>
+        <div class="key-row">
+          <input type="password" id="api-key-input" placeholder="貼上 AIza 開頭的金鑰"
+                 autocomplete="off" autocapitalize="off" spellcheck="false">
+          <button class="icon-button" id="toggle-key" aria-label="顯示金鑰">
+            <svg class="icon"><use href="#icon-eye"/></svg>
+          </button>
+        </div>
+        <button class="primary-button" id="save-key">儲存並測試連線</button>
+        <p class="status" id="key-status"></p>
+      </section>
+    </div>
+  </div>
+
+  <!-- 程式：順序很重要，前面的檔案要先載入 -->
+  <script src="theo.js"></script>
   <script src="storage.js"></script>
+  <script src="ai.js"></script>
   <script src="app.js"></script>
 
 </body>

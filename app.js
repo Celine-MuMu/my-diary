@@ -203,6 +203,86 @@ micButton.addEventListener("click", function () {
   else startListening();
 });
 
+// ---------- 設定頁 ----------
+const settingsPage = document.getElementById("settings-page");
+const personalityOptions = document.getElementById("personality-options");
+const apiKeyInput = document.getElementById("api-key-input");
+const saveKeyButton = document.getElementById("save-key");
+const keyStatus = document.getElementById("key-status");
+
+function openSettings() {
+  const settings = loadSettings();
+
+  // 根據 theo.js 的個性列表，做出選項卡片
+  personalityOptions.innerHTML = "";
+  for (const key in 個性列表) {
+    const label = document.createElement("label");
+    label.className = "option";
+
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "personality";
+    radio.value = key;
+    radio.checked = key === settings.personality;
+    radio.addEventListener("change", function () {
+      saveSettings({ personality: key }); // 選了就馬上存
+    });
+
+    const text = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = 個性列表[key].名稱;
+    const intro = document.createElement("span");
+    intro.textContent = 個性列表[key].簡介;
+    text.append(title, intro);
+
+    label.append(radio, text);
+    personalityOptions.appendChild(label);
+  }
+
+  apiKeyInput.value = settings.apiKey;
+  apiKeyInput.type = "password";
+  keyStatus.textContent = settings.apiKey ? "已設定金鑰" : "";
+  keyStatus.className = "status";
+  settingsPage.hidden = false;
+}
+
+function closeSettings() {
+  settingsPage.hidden = true;
+}
+
+// 儲存金鑰，順便測試能不能用
+async function saveKey() {
+  const key = apiKeyInput.value.trim();
+  saveSettings({ apiKey: key });
+  if (!key) {
+    keyStatus.textContent = "已清除金鑰";
+    keyStatus.className = "status";
+    return;
+  }
+
+  saveKeyButton.disabled = true;
+  keyStatus.textContent = "測試連線中……";
+  keyStatus.className = "status";
+  try {
+    await testAIConnection(key);
+    keyStatus.textContent = "連線成功，Theo 準備好了";
+    keyStatus.className = "status ok";
+  } catch (e) {
+    keyStatus.textContent = e.message;
+    keyStatus.className = "status error";
+  }
+  saveKeyButton.disabled = false;
+}
+
+document.getElementById("settings-button").addEventListener("click", openSettings);
+document.getElementById("settings-back").addEventListener("click", closeSettings);
+saveKeyButton.addEventListener("click", saveKey);
+
+// 眼睛按鈕：顯示／隱藏金鑰
+document.getElementById("toggle-key").addEventListener("click", function () {
+  apiKeyInput.type = apiKeyInput.type === "password" ? "text" : "password";
+});
+
 // ---------- 綁定按鈕 ----------
 sendButton.addEventListener("click", send);
 input.addEventListener("input", resizeInput);
