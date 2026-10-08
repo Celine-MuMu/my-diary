@@ -18,7 +18,7 @@
   <!-- T1.2 你來改：主畫面圖示下方顯示的名字 -->
   <meta name="apple-mobile-web-app-title" content="Theo 日記">
 
-  <link rel="stylesheet" href="style.css?v=20261008g">
+  <link rel="stylesheet" href="style.css?v=20261008h">
 </head>
 <body>
 
@@ -54,9 +54,6 @@
     <symbol id="icon-bell" viewBox="0 0 24 24">
       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
     </symbol>
-    <symbol id="icon-book" viewBox="0 0 24 24">
-      <path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>
-    </symbol>
     <symbol id="icon-eye" viewBox="0 0 24 24">
       <path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>
     </symbol>
@@ -72,16 +69,12 @@
         <button class="icon-button" id="prev-day" aria-label="前一天">
           <svg class="icon"><use href="#icon-chevron-left"/></svg>
         </button>
-        <div class="date-label" id="date-label">
-          <!-- 日期由 app.js 填入 -->
-        </div>
+        <!-- 點日期打開日曆頁；日期由 app.js 填入 -->
+        <button class="date-label" id="date-label" aria-label="打開日曆"></button>
         <button class="icon-button" id="next-day" aria-label="後一天">
           <svg class="icon"><use href="#icon-chevron-right"/></svg>
         </button>
       </div>
-      <button class="icon-button" id="reviews-button" aria-label="回顧">
-        <svg class="icon"><use href="#icon-book"/></svg>
-      </button>
       <button class="icon-button" id="goals-button" aria-label="目標">
         <svg class="icon"><use href="#icon-target"/></svg>
       </button>
@@ -210,30 +203,55 @@
   </div>
 
   <!-- ============================================
-       回顧頁（按右上角書本打開）
+       日曆頁（點上方的日期打開），下方是這個月的回顧
        ============================================ -->
-  <div class="page" id="reviews-page" hidden>
+  <div class="page" id="calendar-page" hidden>
     <header class="top-bar">
-      <button class="icon-button" id="reviews-back" aria-label="返回">
+      <button class="icon-button" id="calendar-back" aria-label="返回">
         <svg class="icon"><use href="#icon-chevron-left"/></svg>
       </button>
-      <div class="page-title">回顧</div>
+      <div class="page-title">日曆</div>
       <div class="icon-button" aria-hidden="true"></div>
     </header>
     <div class="page-body">
-      <!-- 回顧由 reviews.js 放進來 -->
-      <div id="reviews-list"></div>
+      <div class="calendar">
+        <div class="calendar-nav">
+          <button class="icon-button" id="prev-month" aria-label="上個月">
+            <svg class="icon"><use href="#icon-chevron-left"/></svg>
+          </button>
+          <div class="calendar-month" id="calendar-month"></div>
+          <button class="icon-button" id="next-month" aria-label="下個月">
+            <svg class="icon"><use href="#icon-chevron-right"/></svg>
+          </button>
+        </div>
+        <div class="calendar-weekdays">
+          <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+        </div>
+        <!-- 日期格子由 calendar.js 放進來 -->
+        <div class="calendar-grid" id="calendar-grid"></div>
+        <div class="calendar-legend">
+          <span><i class="dot entry"></i>有寫日記</span>
+          <span><i class="dot goal"></i>有目標</span>
+        </div>
+      </div>
+
+      <section class="setting-section">
+        <h2>這個月的回顧</h2>
+        <!-- 回顧由 calendar.js 放進來 -->
+        <div id="reviews-list"></div>
+      </section>
     </div>
   </div>
 
   <!-- 程式：順序很重要，前面的檔案要先載入
        ?v= 後面是版本號：每次更新都改一下，手機才不會用到舊的檔案 -->
-  <script src="theo.js?v=20261008g"></script>
-  <script src="storage.js?v=20261008g"></script>
-  <script src="ai.js?v=20261008g"></script>
-  <script src="goals.js?v=20261008g"></script>
-  <script src="reviews.js?v=20261008g"></script>
-  <script src="app.js?v=20261008g"></script>
+  <script src="theo.js?v=20261008h"></script>
+  <script src="storage.js?v=20261008h"></script>
+  <script src="ai.js?v=20261008h"></script>
+  <script src="goals.js?v=20261008h"></script>
+  <script src="reviews.js?v=20261008h"></script>
+  <script src="calendar.js?v=20261008h"></script>
+  <script src="app.js?v=20261008h"></script>
 
 </body>
 </html>

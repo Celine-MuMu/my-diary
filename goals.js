@@ -21,6 +21,22 @@ function describeGoal(goal) {
 // 有提到這些「未來」的字眼，才去問 AI，沒有就不問，節省額度
 const 未來的字眼 = /明天|明早|明晚|後天|週|周|禮拜|星期|下次|下個|月|號|假日|連假|之後|改天|找時間|有空|打算|計畫|預計/;
 
+// 有這些字眼代表「還沒決定哪一天」，一律用提問卡片讓你選
+const 模糊的字眼 = /週末|周末|假日|有空|改天|找時間|這幾天|下週(?![一二三四五六日天])|下禮拜(?![一二三四五六日天])|下星期(?![一二三四五六日天])/;
+
+// 「週末」只給了一天的話，把另一天也加進去
+function addOtherWeekendDay(dates, text, today) {
+  if (!/週末|周末/.test(text) || dates.length !== 1) return dates;
+  const [y, m, d] = dates[0].split("-").map(Number);
+  const weekday = new Date(y, m - 1, d).getDay();
+  if (weekday === 6) return [dates[0], shiftDay(dates[0], 1)];               // 星期六 → 加星期日
+  if (weekday === 0) {
+    const saturday = shiftDay(dates[0], -1);                                   // 星期日 → 加星期六
+    return saturday > today ? [saturday, dates[0]] : dates;
+  }
+  return dates;
+}
+
 // 每次送出日記後呼叫（不用等它，在背景慢慢做）
 async function detectGoals(message) {
   if (!未來的字眼.test(message.text)) return;
@@ -66,17 +82,19 @@ async function detectGoals(message) {
       .slice(0, 7);
     if (dates.length === 0) continue;
     const time = goal.time || "";
+    const finalDates = addOtherWeekendDay(dates, message.text, today);
+    const vague = 模糊的字眼.test(message.text);
 
-    if (dates.length === 1 && time) {
+    if (finalDates.length === 1 && time && !vague) {
       // 說得很明確：直接問「對嗎？」
-      addMessage("theo", "我幫你記：" + describeGoal({ what: goal.what, date: dates[0], time: time }) + "，對嗎？", "goal-confirm", {
-        goal: { what: goal.what, date: dates[0], time: time },
+      addMessage("theo", "我幫你記：" + describeGoal({ what: goal.what, date: finalDates[0], time: time }) + "，對嗎？", "goal-confirm", {
+        goal: { what: goal.what, date: finalDates[0], time: time },
         answered: null,
       });
     } else {
       // 說得比較模糊：問哪一天、什麼時段
       addMessage("theo", "要幫你記下來嗎？「" + goal.what + "」", "goal-ask", {
-        goal: { what: goal.what, dates: dates, time: time },
+        goal: { what: goal.what, dates: finalDates, time: time },
         answered: null,
       });
     }

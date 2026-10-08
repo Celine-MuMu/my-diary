@@ -1,7 +1,7 @@
 // ============================================
 // reviews.js：每週／每月回顧
 // 新的一週（星期一）、新的一個月第一次打開 App 時，
-// 自動整理上一週／上個月，放在回顧頁
+// 自動整理上一週／上個月，顯示在日曆頁下方（calendar.js）
 // ============================================
 
 const 回顧存放名稱 = "theo-diary-reviews";
@@ -135,7 +135,9 @@ async function autoReviews() {
       const review = await createReview(range);
       if (review) {
         const what = range.kind === "week" ? "上週" : "上個月";
-        showNotice(what + "的回顧整理好了", "看看", openReviews); // app.js
+        showNotice(what + "的回顧整理好了", "看看", function () {
+          openCalendar(review.end); // 打開那個月的日曆，回顧在下方（calendar.js）
+        });
       }
     } catch (e) {
       // 失敗就算了，下次打開再試
@@ -143,33 +145,7 @@ async function autoReviews() {
   }
 }
 
-// ---------- 回顧頁 ----------
-const reviewsPage = document.getElementById("reviews-page");
-const reviewsList = document.getElementById("reviews-list");
-
-function openReviews() {
-  showReviews();
-  reviewsPage.hidden = false;
-}
-
-function closeReviews() {
-  reviewsPage.hidden = true;
-}
-
-function showReviews() {
-  const reviews = loadReviews().sort(function (a, b) {
-    return a.end < b.end ? 1 : a.end > b.end ? -1 : (a.kind === "month" ? -1 : 1);
-  });
-  reviewsList.innerHTML = "";
-  if (reviews.length === 0) {
-    reviewsList.innerHTML = '<p class="hint">還沒有回顧。每到新的一週（星期一）、新的一個月，Theo 會自動幫你整理上一週、上個月。</p>';
-    return;
-  }
-  for (const review of reviews) {
-    reviewsList.appendChild(createReviewCard(review));
-  }
-}
-
+// ---------- 回顧卡片（日曆頁下方會用到）----------
 function createReviewCard(review) {
   const card = document.createElement("div");
   card.className = "summary-card review-card";
@@ -213,6 +189,3 @@ function createReviewCard(review) {
   addText(next + "的小建議", review.advice);
   return card;
 }
-
-document.getElementById("reviews-button").addEventListener("click", openReviews);
-document.getElementById("reviews-back").addEventListener("click", closeReviews);
