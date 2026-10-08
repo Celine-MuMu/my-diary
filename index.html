@@ -18,7 +18,7 @@
   <!-- T1.2 你來改：主畫面圖示下方顯示的名字 -->
   <meta name="apple-mobile-web-app-title" content="Theo 日記">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261008b">
 </head>
 <body>
 
@@ -141,26 +141,40 @@
       </section>
 
       <section class="setting-section">
-        <h2>Groq API 金鑰</h2>
-        <p class="hint">金鑰只存在這支手機上，只會用來跟 Groq 溝通。</p>
+        <h2>AI 金鑰</h2>
+        <p class="hint">平常用 Groq；Groq 不行時，自動換 Gemini。金鑰只存在這支手機上，只會用來跟各自的 AI 溝通。</p>
+
+        <label class="key-label" for="groq-key-input">Groq（主力）</label>
         <div class="key-row">
-          <input type="password" id="api-key-input" placeholder="貼上 gsk_ 開頭的金鑰"
+          <input type="password" id="groq-key-input" placeholder="貼上 gsk_ 開頭的金鑰"
                  autocomplete="off" autocapitalize="off" spellcheck="false">
-          <button class="icon-button" id="toggle-key" aria-label="顯示金鑰">
+          <button class="icon-button toggle-key" data-for="groq-key-input" aria-label="顯示金鑰">
             <svg class="icon"><use href="#icon-eye"/></svg>
           </button>
         </div>
+        <p class="status" id="groq-status"></p>
+
+        <label class="key-label" for="gemini-key-input">Gemini（備援）</label>
+        <div class="key-row">
+          <input type="password" id="gemini-key-input" placeholder="貼上 Gemini 的金鑰"
+                 autocomplete="off" autocapitalize="off" spellcheck="false">
+          <button class="icon-button toggle-key" data-for="gemini-key-input" aria-label="顯示金鑰">
+            <svg class="icon"><use href="#icon-eye"/></svg>
+          </button>
+        </div>
+        <p class="status" id="gemini-status"></p>
+
         <button class="primary-button" id="save-key">儲存並測試連線</button>
-        <p class="status" id="key-status"></p>
       </section>
     </div>
   </div>
 
-  <!-- 程式：順序很重要，前面的檔案要先載入 -->
-  <script src="theo.js"></script>
-  <script src="storage.js"></script>
-  <script src="ai.js"></script>
-  <script src="app.js"></script>
+  <!-- 程式：順序很重要，前面的檔案要先載入
+       ?v= 後面是版本號：每次更新都改一下，手機才不會用到舊的檔案 -->
+  <script src="theo.js?v=20261008b"></script>
+  <script src="storage.js?v=20261008b"></script>
+  <script src="ai.js?v=20261008b"></script>
+  <script src="app.js?v=20261008b"></script>
 
 </body>
 </html>

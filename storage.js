@@ -62,9 +62,17 @@ function loadSettings() {
   try {
     saved = JSON.parse(localStorage.getItem(設定存放名稱)) || {};
   } catch (e) {}
+
+  // 舊版只有一個 apiKey：gsk_ 開頭的是 Groq，其他的是 Gemini
+  if (saved.apiKey) {
+    if (saved.apiKey.startsWith("gsk_")) saved.groqKey = saved.groqKey || saved.apiKey;
+    else saved.geminiKey = saved.geminiKey || saved.apiKey;
+  }
+
   return {
     personality: saved.personality || 預設個性, // Theo 的個性
-    apiKey: saved.apiKey || "",                 // Groq API 金鑰
+    groqKey: saved.groqKey || "",               // Groq API 金鑰（主力）
+    geminiKey: saved.geminiKey || "",           // Gemini API 金鑰（備援）
   };
 }
 

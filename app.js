@@ -333,7 +333,7 @@ async function summarizeDay(dayKey) {
     "- highlights：這天的亮點，1 到 3 項，用你的語氣真心稱讚對方\n" +
     "- comment：一句你對這天的總評，像朋友說的話";
 
-  const answer = await askAI(buildTheoPrompt(settings.personality), request, null, { json: true });
+  const answer = await askAI(buildTheoPrompt(settings.personality), request, { json: true });
 
   let summary;
   try {
@@ -397,7 +397,8 @@ endDayButton.addEventListener("click", endDay);
 async function autoSummarizeYesterday() {
   const yesterday = shiftDay(todayKey(), -1);
   if (!hasEntries(yesterday) || hasSummary(yesterday)) return;
-  if (!loadSettings().apiKey) return;
+  const settings = loadSettings();
+  if (!settings.groqKey && !settings.geminiKey) return;
 
   try {
     await summarizeDay(yesterday);
@@ -428,9 +429,18 @@ function showNotice(text, buttonText, onClick) {
 // ---------- 設定頁 ----------
 const settingsPage = document.getElementById("settings-page");
 const personalityOptions = document.getElementById("personality-options");
-const apiKeyInput = document.getElementById("api-key-input");
 const saveKeyButton = document.getElementById("save-key");
-const keyStatus = document.getElementById("key-status");
+
+// 每個 AI 的金鑰輸入框和狀態文字
+const 金鑰欄位 = [
+  { ai: "Groq", 設定: "groqKey", input: document.getElementById("groq-key-input"), status: document.getElementById("groq-status") },
+  { ai: "Gemini", 設定: "geminiKey", input: document.getElementById("gemini-key-input"), status: document.getElementById("gemini-status") },
+];
+
+function showKeyStatus(field, text, kind) {
+  field.status.textContent = text;
+  field.status.className = "status" + (kind ? " " + kind : "");
+}
 
 function openSettings() {
   const settings = loadSettings();
@@ -461,10 +471,11 @@ function openSettings() {
     personalityOptions.appendChild(label);
   }
 
-  apiKeyInput.value = settings.apiKey;
-  apiKeyInput.type = "password";
-  keyStatus.textContent = settings.apiKey ? "已設定金鑰" : "";
-  keyStatus.className = "status";
+  for (const field of 金鑰欄位) {
+    field.input.value = settings[field.設定];
+    field.input.type = "password";
+    showKeyStatus(field, settings[field.設定] ? "已設定金鑰" : "還沒設定");
+  }
   settingsPage.hidden = false;
 }
 
@@ -472,37 +483,42 @@ function closeSettings() {
   settingsPage.hidden = true;
 }
 
-// 儲存金鑰，順便測試能不能用
-async function saveKey() {
-  const key = apiKeyInput.value.trim();
-  saveSettings({ apiKey: key });
-  if (!key) {
-    keyStatus.textContent = "已清除金鑰";
-    keyStatus.className = "status";
-    return;
+// 儲存兩個金鑰，順便各自測試能不能用
+async function saveKeys() {
+  const changes = { apiKey: "" }; // 清掉舊版的單一金鑰
+  for (const field of 金鑰欄位) {
+    changes[field.設定] = field.input.value.trim();
   }
+  saveSettings(changes);
 
   saveKeyButton.disabled = true;
-  keyStatus.textContent = "測試連線中……";
-  keyStatus.className = "status";
-  try {
-    await testAIConnection(key);
-    keyStatus.textContent = "連線成功，Theo 準備好了";
-    keyStatus.className = "status ok";
-  } catch (e) {
-    keyStatus.textContent = e.message;
-    keyStatus.className = "status error";
-  }
+  await Promise.all(金鑰欄位.map(async function (field) {
+    const key = changes[field.設定];
+    if (!key) {
+      showKeyStatus(field, "沒有設定，會跳過這個 AI");
+      return;
+    }
+    showKeyStatus(field, "測試連線中……");
+    try {
+      await testAIConnection(field.ai, key);
+      showKeyStatus(field, "連線成功", "ok");
+    } catch (e) {
+      showKeyStatus(field, e.message, "error");
+    }
+  }));
   saveKeyButton.disabled = false;
 }
 
 document.getElementById("settings-button").addEventListener("click", openSettings);
 document.getElementById("settings-back").addEventListener("click", closeSettings);
-saveKeyButton.addEventListener("click", saveKey);
+saveKeyButton.addEventListener("click", saveKeys);
 
 // 眼睛按鈕：顯示／隱藏金鑰
-document.getElementById("toggle-key").addEventListener("click", function () {
-  apiKeyInput.type = apiKeyInput.type === "password" ? "text" : "password";
+document.querySelectorAll(".toggle-key").forEach(function (button) {
+  button.addEventListener("click", function () {
+    const input = document.getElementById(button.dataset.for);
+    input.type = input.type === "password" ? "text" : "password";
+  });
 });
 
 // ---------- 綁定按鈕 ----------
