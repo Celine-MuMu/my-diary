@@ -693,3 +693,6 @@ body {
   color: var(--淡文字);
 }
 .calendar-legend .dot { margin-right: 4px; }
+
+/* 儲存金鑰的按鈕跟上面的狀態文字隔開一點 */
+#save-key { margin-top: 14px; }

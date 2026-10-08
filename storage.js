@@ -73,6 +73,7 @@ function loadSettings() {
     personality: saved.personality || 預設個性, // Theo 的個性
     groqKey: saved.groqKey || "",               // Groq API 金鑰（主力）
     geminiKey: saved.geminiKey || "",           // Gemini API 金鑰（備援）
+    lastBackup: saved.lastBackup || "",         // 上次備份的時間
   };
 }
 

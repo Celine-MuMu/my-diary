@@ -18,7 +18,7 @@
   <!-- T1.2 你來改：主畫面圖示下方顯示的名字 -->
   <meta name="apple-mobile-web-app-title" content="Theo 日記">
 
-  <link rel="stylesheet" href="style.css?v=20261008h">
+  <link rel="stylesheet" href="style.css?v=20261008j">
 </head>
 <body>
 
@@ -165,6 +165,17 @@
 
         <button class="primary-button" id="save-key">儲存並測試連線</button>
       </section>
+
+      <section class="setting-section">
+        <h2>備份</h2>
+        <p class="hint">日記只存在這支手機上，換手機或清掉 Safari 資料就會不見，記得偶爾備份。備份檔不包含金鑰。</p>
+        <div class="form-buttons">
+          <button class="action-button" id="import-backup">匯入備份</button>
+          <button class="primary-button" id="export-backup">匯出備份</button>
+        </div>
+        <input type="file" id="import-file" accept="application/json,.json" hidden>
+        <p class="status" id="backup-status"></p>
+      </section>
     </div>
   </div>
 
@@ -245,13 +256,14 @@
 
   <!-- 程式：順序很重要，前面的檔案要先載入
        ?v= 後面是版本號：每次更新都改一下，手機才不會用到舊的檔案 -->
-  <script src="theo.js?v=20261008h"></script>
-  <script src="storage.js?v=20261008h"></script>
-  <script src="ai.js?v=20261008h"></script>
-  <script src="goals.js?v=20261008h"></script>
-  <script src="reviews.js?v=20261008h"></script>
-  <script src="calendar.js?v=20261008h"></script>
-  <script src="app.js?v=20261008h"></script>
+  <script src="theo.js?v=20261008j"></script>
+  <script src="storage.js?v=20261008j"></script>
+  <script src="ai.js?v=20261008j"></script>
+  <script src="goals.js?v=20261008j"></script>
+  <script src="reviews.js?v=20261008j"></script>
+  <script src="calendar.js?v=20261008j"></script>
+  <script src="backup.js?v=20261008j"></script>
+  <script src="app.js?v=20261008j"></script>
 
 </body>
 </html>

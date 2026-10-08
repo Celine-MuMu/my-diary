@@ -515,6 +515,7 @@ function openSettings() {
     field.input.type = "password";
     showKeyStatus(field, settings[field.設定] ? "已設定金鑰" : "還沒設定");
   }
+  showBackupStatus(); // backup.js
   settingsPage.hidden = false;
 }
 
