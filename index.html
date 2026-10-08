@@ -18,7 +18,7 @@
   <!-- T1.2 你來改：主畫面圖示下方顯示的名字 -->
   <meta name="apple-mobile-web-app-title" content="Theo 日記">
 
-  <link rel="stylesheet" href="style.css?v=20261008d">
+  <link rel="stylesheet" href="style.css?v=20261008e">
 </head>
 <body>
 
@@ -169,12 +169,47 @@
     </div>
   </div>
 
+  <!-- ============================================
+       目標頁（按右上角靶心打開）
+       ============================================ -->
+  <div class="page" id="goals-page" hidden>
+    <header class="top-bar">
+      <button class="icon-button" id="goals-back" aria-label="返回">
+        <svg class="icon"><use href="#icon-chevron-left"/></svg>
+      </button>
+      <div class="page-title">目標</div>
+      <div class="icon-button" aria-hidden="true"></div>
+    </header>
+
+    <div class="page-body">
+      <button class="primary-button" id="add-goal">新增目標</button>
+
+      <!-- 新增／編輯目標的表單 -->
+      <form class="goal-form" id="goal-form" hidden>
+        <label class="key-label" for="goal-what">要做什麼</label>
+        <input class="text-input" id="goal-what" placeholder="例如：去運動">
+        <label class="key-label" for="goal-date">日期</label>
+        <input class="text-input" id="goal-date" type="date">
+        <label class="key-label" for="goal-time">時段（可以不填）</label>
+        <input class="text-input" id="goal-time" placeholder="例如：下午">
+        <div class="form-buttons">
+          <button type="button" class="action-button" id="goal-cancel">取消</button>
+          <button type="submit" class="primary-button">儲存</button>
+        </div>
+      </form>
+
+      <!-- 目標清單由 goals.js 放進來 -->
+      <div id="goals-list"></div>
+    </div>
+  </div>
+
   <!-- 程式：順序很重要，前面的檔案要先載入
        ?v= 後面是版本號：每次更新都改一下，手機才不會用到舊的檔案 -->
-  <script src="theo.js?v=20261008d"></script>
-  <script src="storage.js?v=20261008d"></script>
-  <script src="ai.js?v=20261008d"></script>
-  <script src="app.js?v=20261008d"></script>
+  <script src="theo.js?v=20261008e"></script>
+  <script src="storage.js?v=20261008e"></script>
+  <script src="ai.js?v=20261008e"></script>
+  <script src="goals.js?v=20261008e"></script>
+  <script src="app.js?v=20261008e"></script>
 
 </body>
 </html>

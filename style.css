@@ -463,3 +463,102 @@ body {
 }
 .status.ok { color: #3C8D5A; }
 .status.error { color: var(--橘紅); }
+
+/* ============================================
+   目標
+   ============================================ */
+/* 聊天裡有按鈕的卡片（確認目標、問有沒有做到） */
+.choice-card { border-left-color: var(--藍); background: #EEF3FA; }
+.choice-card .icon { color: var(--藍); }
+.choice-body { flex: 1; }
+.choice-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.choice-buttons button {
+  flex: 1;
+  min-height: 40px;
+  border: 1.5px solid var(--藍);
+  border-radius: 20px;
+  background: #fff;
+  color: var(--藍);
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.choice-buttons button:first-child {
+  background: var(--藍);
+  color: #fff;
+}
+.choice-buttons button:disabled { opacity: 0.5; }
+.choice-result {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--淡文字);
+}
+
+/* 目標頁 */
+#add-goal { margin-bottom: 20px; }
+
+.goal-form {
+  padding: 4px 16px 16px;
+  margin-bottom: 24px;
+  background: #fff;
+  border-radius: 14px;
+}
+.goal-form[hidden] { display: none; }
+.text-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--邊線);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--文字);
+  font-size: 16px;
+  font-family: inherit;
+}
+.text-input:focus {
+  outline: none;
+  border-color: var(--主色);
+}
+.form-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.form-buttons .primary-button { flex: 1; }
+
+.goal-item {
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: #fff;
+  border-radius: 14px;
+}
+.goal-date {
+  font-size: 13px;
+  color: var(--淡文字);
+}
+.goal-what {
+  font-size: 17px;
+  margin: 2px 0 8px;
+}
+.goal-item.done .goal-what {
+  text-decoration: line-through;
+  color: var(--淡文字);
+}
+.goal-actions {
+  display: flex;
+  gap: 16px;
+}
+.goal-actions button {
+  padding: 4px 0;
+  border: none;
+  background: none;
+  color: var(--藍);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.goal-actions button:last-child { color: var(--橘紅); }

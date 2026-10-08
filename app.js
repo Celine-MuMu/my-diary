@@ -59,6 +59,9 @@ function formatTime(isoTime) {
 // 做出一個聊天泡泡
 function createBubble(message) {
   if (message.type === "summary") return createSummaryCard(message);
+  if (message.type === "reminder") return createReminderCard(message);           // goals.js
+  if (message.type === "goal-confirm") return createGoalConfirmCard(message);    // goals.js
+  if (message.type === "goal-followup") return createGoalFollowupCard(message);  // goals.js
 
   const box = document.createElement("div");
   box.className = "message " + message.role;
@@ -181,10 +184,11 @@ function send() {
 
   // 如果 App 一直開著、過了凌晨 4 點，先跳到新的一天
   currentDay = todayKey();
-  addMessage("me", text, "entry");
+  const message = addMessage("me", text, "entry");
   input.value = "";
   resizeInput();
   showMessages();
+  detectGoals(message); // 在背景找有沒有提到之後想做的事（goals.js）
 }
 
 // 輸入框隨著字數自動變高
@@ -556,9 +560,11 @@ document.addEventListener("visibilitychange", function () {
   if (now === lastToday) return; // 沒換日，什麼都不用做
   if (currentDay === lastToday) currentDay = now;
   lastToday = now;
+  checkGoalReminders(); // 換日了，看看有沒有要提醒的目標（goals.js）
   showMessages();
 });
 
 // ---------- 打開 App 時 ----------
+checkGoalReminders(); // 看看有沒有要提醒的目標（goals.js）
 showMessages();
 autoSummarizeYesterday();

@@ -85,3 +85,64 @@ function saveSettings(changes) {
     alert("設定存檔失敗。");
   }
 }
+
+// 修改某一則訊息，例如按了「對」之後記下答案
+function updateMessage(id, changes) {
+  const messages = loadMessages();
+  const message = messages.find(function (item) { return item.id === id; });
+  if (!message) return;
+  Object.assign(message, changes);
+  saveMessages(messages);
+}
+
+// ---------- 目標 ----------
+const 目標存放名稱 = "theo-diary-goals";
+
+// 一個目標長這樣：
+// { id, what: "去運動", date: "2026-10-14", time: "下午",
+//   status: "planned" 還沒做／"done" 完成／"missed" 沒做到,
+//   remindedBefore: 前一天提醒過了沒, remindedToday: 當天提醒過了沒, followedUp: 事後問過了沒 }
+function loadGoals() {
+  try {
+    return JSON.parse(localStorage.getItem(目標存放名稱)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveGoals(goals) {
+  try {
+    localStorage.setItem(目標存放名稱, JSON.stringify(goals));
+  } catch (e) {
+    alert("目標存檔失敗。");
+  }
+}
+
+function addGoal(what, date, time) {
+  const goal = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    what: what,
+    date: date,
+    time: time || "",
+    status: "planned",
+    remindedBefore: false,
+    remindedToday: false,
+    followedUp: false,
+  };
+  const goals = loadGoals();
+  goals.push(goal);
+  saveGoals(goals);
+  return goal;
+}
+
+function updateGoal(id, changes) {
+  const goals = loadGoals();
+  const goal = goals.find(function (item) { return item.id === id; });
+  if (!goal) return;
+  Object.assign(goal, changes);
+  saveGoals(goals);
+}
+
+function removeGoal(id) {
+  saveGoals(loadGoals().filter(function (goal) { return goal.id !== id; }));
+}
