@@ -18,7 +18,7 @@
   <!-- T1.2 你來改：主畫面圖示下方顯示的名字 -->
   <meta name="apple-mobile-web-app-title" content="Theo 日記">
 
-  <link rel="stylesheet" href="style.css?v=20261008e">
+  <link rel="stylesheet" href="style.css?v=20261008g">
 </head>
 <body>
 
@@ -54,6 +54,9 @@
     <symbol id="icon-bell" viewBox="0 0 24 24">
       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
     </symbol>
+    <symbol id="icon-book" viewBox="0 0 24 24">
+      <path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>
+    </symbol>
     <symbol id="icon-eye" viewBox="0 0 24 24">
       <path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>
     </symbol>
@@ -76,6 +79,9 @@
           <svg class="icon"><use href="#icon-chevron-right"/></svg>
         </button>
       </div>
+      <button class="icon-button" id="reviews-button" aria-label="回顧">
+        <svg class="icon"><use href="#icon-book"/></svg>
+      </button>
       <button class="icon-button" id="goals-button" aria-label="目標">
         <svg class="icon"><use href="#icon-target"/></svg>
       </button>
@@ -203,13 +209,31 @@
     </div>
   </div>
 
+  <!-- ============================================
+       回顧頁（按右上角書本打開）
+       ============================================ -->
+  <div class="page" id="reviews-page" hidden>
+    <header class="top-bar">
+      <button class="icon-button" id="reviews-back" aria-label="返回">
+        <svg class="icon"><use href="#icon-chevron-left"/></svg>
+      </button>
+      <div class="page-title">回顧</div>
+      <div class="icon-button" aria-hidden="true"></div>
+    </header>
+    <div class="page-body">
+      <!-- 回顧由 reviews.js 放進來 -->
+      <div id="reviews-list"></div>
+    </div>
+  </div>
+
   <!-- 程式：順序很重要，前面的檔案要先載入
        ?v= 後面是版本號：每次更新都改一下，手機才不會用到舊的檔案 -->
-  <script src="theo.js?v=20261008e"></script>
-  <script src="storage.js?v=20261008e"></script>
-  <script src="ai.js?v=20261008e"></script>
-  <script src="goals.js?v=20261008e"></script>
-  <script src="app.js?v=20261008e"></script>
+  <script src="theo.js?v=20261008g"></script>
+  <script src="storage.js?v=20261008g"></script>
+  <script src="ai.js?v=20261008g"></script>
+  <script src="goals.js?v=20261008g"></script>
+  <script src="reviews.js?v=20261008g"></script>
+  <script src="app.js?v=20261008g"></script>
 
 </body>
 </html>

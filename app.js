@@ -61,6 +61,7 @@ function createBubble(message) {
   if (message.type === "summary") return createSummaryCard(message);
   if (message.type === "reminder") return createReminderCard(message);           // goals.js
   if (message.type === "goal-confirm") return createGoalConfirmCard(message);    // goals.js
+  if (message.type === "goal-ask") return createGoalAskCard(message);            // goals.js
   if (message.type === "goal-followup") return createGoalFollowupCard(message);  // goals.js
 
   const box = document.createElement("div");
@@ -165,9 +166,25 @@ function showMessages() {
     return;
   }
 
-  for (const message of messages) {
-    chat.appendChild(createBubble(message));
+  // 一般的聊天泡泡（不是卡片）
+  function isBubble(message) {
+    return message && (message.type === "entry" || message.type === "reply");
   }
+  // 同一個人連續傳的：名字只在第一則顯示，時間只在最後一則顯示（同一分鐘內）
+  messages.forEach(function (message, i) {
+    const el = createBubble(message);
+    const prev = messages[i - 1];
+    const next = messages[i + 1];
+    if (isBubble(message) && isBubble(prev) && prev.role === message.role) {
+      el.classList.add("continued");
+      el.querySelector(".name")?.remove();
+    }
+    if (isBubble(message) && isBubble(next) && next.role === message.role &&
+        formatTime(next.time) === formatTime(message.time)) {
+      el.querySelector(".time")?.remove();
+    }
+    chat.appendChild(el);
+  });
   scrollToBottom();
 }
 
@@ -294,16 +311,34 @@ async function askTheo() {
     "現在時間 " + formatTime(new Date()) + "。\n" +
     "以下是對方今天到目前為止的日記，也包含你之前的回應：\n\n" +
     diary + "\n\n" +
-    "請以 Theo 的身分回應。重點放在你上次回應之後對方新寫的內容，但可以連結今天稍早的事。";
+    "請以 Theo 的身分回應。重點放在你上次回應之後對方新寫的內容，但可以連結今天稍早的事。\n" +
+    "像傳訊息一樣，分成 1 到 3 則短訊息，每則之間空一行。";
 
   try {
     const reply = await askAI(buildTheoPrompt(settings.personality), request);
-    addMessage("theo", reply, "reply");
+    await addTheoReplies(reply);
   } catch (e) {
     alert(e.message);
   }
 
   askTheoButton.disabled = false;
+  showMessages();
+}
+
+// 把 Theo 的回覆拆成好幾則（用空行分開），一則一則跳出來
+async function addTheoReplies(reply) {
+  const parts = reply.split(/\n\s*\n/).map(function (part) { return part.trim(); }).filter(Boolean);
+  for (let i = 0; i < parts.length; i++) {
+    if (i > 0) {
+      // 中間停頓一下，像朋友在打下一則；字越多停越久，但最多 1.8 秒
+      showMessages();
+      showTyping("……");
+      await new Promise(function (resolve) {
+        setTimeout(resolve, Math.min(600 + parts[i].length * 30, 1800));
+      });
+    }
+    addMessage("theo", parts[i], "reply");
+  }
   showMessages();
 }
 
@@ -567,4 +602,8 @@ document.addEventListener("visibilitychange", function () {
 // ---------- 打開 App 時 ----------
 checkGoalReminders(); // 看看有沒有要提醒的目標（goals.js）
 showMessages();
-autoSummarizeYesterday();
+// 依序做，避免同時問 AI 太多次：先補昨天的總結，再做上週／上個月的回顧（reviews.js）
+(async function () {
+  await autoSummarizeYesterday();
+  await autoReviews();
+})();

@@ -75,7 +75,7 @@ body {
 .top-bar {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 0;
   /* iPhone 瀏海的安全距離 */
   padding: calc(8px + env(safe-area-inset-top)) 8px 8px;
   background: var(--背景);
@@ -117,6 +117,9 @@ body {
   flex-direction: column;
   max-width: 80%;
 }
+
+/* 同一個人連續傳的，靠近一點 */
+.message.continued { margin-top: -8px; }
 
 /* 我說的話：靠右、黃色 */
 .message.me {
@@ -492,6 +495,35 @@ body {
   color: #fff;
 }
 .choice-buttons button:disabled { opacity: 0.5; }
+
+/* 提問卡片裡可以選的小按鈕 */
+.chip-label {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--淡文字);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.chip {
+  min-height: 34px;
+  padding: 4px 12px;
+  border: 1px solid #C9D6E8;
+  border-radius: 17px;
+  background: #fff;
+  color: var(--文字);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.chip.picked {
+  border-color: var(--藍);
+  background: var(--藍);
+  color: #fff;
+}
 .choice-result {
   margin-top: 6px;
   font-size: 14px;
@@ -562,3 +594,15 @@ body {
   cursor: pointer;
 }
 .goal-actions button:last-child { color: var(--橘紅); }
+
+/* ============================================
+   回顧
+   ============================================ */
+.review-card { margin-bottom: 14px; }
+.review-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--主色);
+  margin-bottom: 2px;
+}
+.review-text { margin: 0; }
