@@ -22,7 +22,8 @@ const 可以換模型的錯誤 = [404, 408, 500, 503];
 // 問 AI 一個問題，回傳 AI 的回答（文字）
 // systemPrompt：告訴 AI 要扮演誰（例如 Theo 的個性）
 // userText：要給 AI 看的內容（例如今天的日記）
-async function askAI(systemPrompt, userText, apiKey) {
+// options：{ json: true } 代表要 AI 用固定格式（JSON）回答
+async function askAI(systemPrompt, userText, apiKey, options) {
   apiKey = apiKey || loadSettings().apiKey;
   if (!apiKey) {
     throw new Error("還沒有設定 Gemini API 金鑰，請到設定頁貼上。");
@@ -31,7 +32,7 @@ async function askAI(systemPrompt, userText, apiKey) {
   let lastError;
   for (const model of AI_MODELS) {
     try {
-      return await askModel(model, systemPrompt, userText, apiKey);
+      return await askModel(model, systemPrompt, userText, apiKey, options || {});
     } catch (e) {
       lastError = e;
       if (!可以換模型的錯誤.includes(e.status)) throw e; // 金鑰錯誤等問題，換模型也沒用
@@ -41,16 +42,16 @@ async function askAI(systemPrompt, userText, apiKey) {
 }
 
 // 問某一個模型
-async function askModel(model, systemPrompt, userText, apiKey) {
+async function askModel(model, systemPrompt, userText, apiKey, options) {
   const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model.name + ":generateContent";
 
   const body = {
     system_instruction: { parts: [{ text: systemPrompt }] },
     contents: [{ role: "user", parts: [{ text: userText }] }],
   };
-  if (model.thinking) {
-    body.generationConfig = { thinkingConfig: model.thinking };
-  }
+  body.generationConfig = {};
+  if (model.thinking) body.generationConfig.thinkingConfig = model.thinking;
+  if (options.json) body.generationConfig.responseMimeType = "application/json";
 
   // 超過時間就放棄這次請求
   const controller = new AbortController();

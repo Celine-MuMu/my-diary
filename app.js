@@ -13,6 +13,7 @@ const bottom = document.querySelector(".bottom");
 const backToTodayButton = document.getElementById("back-to-today");
 const micButton = document.getElementById("mic-button");
 const askTheoButton = document.getElementById("ask-theo");
+const endDayButton = document.getElementById("end-day");
 
 // ---------- 日期 ----------
 // 一天在凌晨 4 點換日：半夜 1 點寫的，還算前一天
@@ -57,6 +58,8 @@ function formatTime(isoTime) {
 
 // 做出一個聊天泡泡
 function createBubble(message) {
+  if (message.type === "summary") return createSummaryCard(message);
+
   const box = document.createElement("div");
   box.className = "message " + message.role;
 
@@ -78,6 +81,49 @@ function createBubble(message) {
   box.appendChild(time);
 
   return box;
+}
+
+// 做出一張總結卡片
+function createSummaryCard(message) {
+  const summary = message.summary;
+  const card = document.createElement("div");
+  card.className = "summary-card";
+
+  const title = document.createElement("div");
+  title.className = "summary-title";
+  title.innerHTML = '<svg class="icon"><use href="#icon-moon"/></svg>';
+  title.append(formatDayTitle(dayKeyOf(message.time)) + "的總結");
+  card.appendChild(title);
+
+  // 一個小標題 + 一串項目
+  function addSection(heading, items) {
+    if (!items || items.length === 0) return;
+    const h = document.createElement("h3");
+    h.textContent = heading;
+    const list = document.createElement("ul");
+    for (const item of items) {
+      const li = document.createElement("li");
+      li.textContent = item;
+      list.appendChild(li);
+    }
+    card.append(h, list);
+  }
+  addSection("今天做了什麼", summary.did);
+  addSection("今天的亮點", summary.highlights);
+
+  if (summary.comment) {
+    const comment = document.createElement("p");
+    comment.className = "summary-comment";
+    comment.textContent = summary.comment + " —— Theo";
+    card.appendChild(comment);
+  }
+  return card;
+}
+
+// 把 "2026-10-07" 變成「10/7」
+function formatDayTitle(dayKey) {
+  const [y, m, d] = dayKey.split("-").map(Number);
+  return m + "/" + d + " ";
 }
 
 // 更新上方的日期，例如「10/7（二）昨天」
@@ -205,10 +251,10 @@ micButton.addEventListener("click", function () {
 });
 
 // ---------- 聽聽 Theo 的想法 ----------
-// 把今天的內容整理成文字，例如「09:12 我：起床好累」
-function todayAsText() {
+// 把某一天的內容整理成文字，例如「09:12 我：起床好累」
+function dayAsText(dayKey) {
   return loadMessages()
-    .filter(function (message) { return dayKeyOf(message.time) === todayKey(); })
+    .filter(function (message) { return dayKeyOf(message.time) === dayKey; })
     .map(function (message) {
       const who = message.role === "me" ? "我" : "Theo";
       return formatTime(message.time) + " " + who + "：" + message.text;
@@ -217,18 +263,19 @@ function todayAsText() {
 }
 
 // 在聊天區最下面顯示「Theo 正在思考……」
-function showTyping() {
+function showTyping(text) {
   const typing = document.createElement("div");
   typing.className = "message theo";
   typing.id = "typing";
-  typing.innerHTML = '<div class="name">Theo</div><div class="bubble typing">正在思考……</div>';
+  typing.innerHTML = '<div class="name">Theo</div><div class="bubble typing"></div>';
+  typing.querySelector(".bubble").textContent = text || "正在思考……";
   chat.appendChild(typing);
   scrollToBottom();
 }
 
 async function askTheo() {
   currentDay = todayKey();
-  const diary = todayAsText();
+  const diary = dayAsText(todayKey());
   if (!diary) {
     alert("今天還沒寫東西，先跟 Theo 說點什麼吧。");
     return;
@@ -257,6 +304,126 @@ async function askTheo() {
 }
 
 askTheoButton.addEventListener("click", askTheo);
+
+// ---------- 每日總結 ----------
+// 某一天有沒有自己寫的日記
+function hasEntries(dayKey) {
+  return loadMessages().some(function (message) {
+    return message.role === "me" && dayKeyOf(message.time) === dayKey;
+  });
+}
+
+// 某一天有沒有做過總結
+function hasSummary(dayKey) {
+  return loadMessages().some(function (message) {
+    return message.type === "summary" && dayKeyOf(message.time) === dayKey;
+  });
+}
+
+// 請 Theo 整理某一天，存成一張總結卡片
+async function summarizeDay(dayKey) {
+  const diary = dayAsText(dayKey);
+  const settings = loadSettings();
+  const request =
+    "以下是她 " + dayKey + " 一整天的日記，也包含你當天的回應：\n\n" +
+    diary + "\n\n" +
+    "請幫她整理這一天，用 JSON 回答，格式如下：\n" +
+    '{ "did": ["……"], "highlights": ["……"], "comment": "……" }\n' +
+    "- did：這天做了什麼，依時間順序，每項一句短短的話，只寫她做的事\n" +
+    "- highlights：這天的亮點，1 到 3 項，用你的語氣真心稱讚她\n" +
+    "- comment：一句你對這天的總評，像朋友說的話";
+
+  const answer = await askAI(buildTheoPrompt(settings.personality), request, null, { json: true });
+
+  let summary;
+  try {
+    summary = JSON.parse(answer);
+  } catch (e) {
+    throw new Error("Theo 整理得亂七八糟，再按一次試試。");
+  }
+
+  // 總結放在這一天的最後：今天就用現在時間；以前的日子用最後一則之後的時間
+  const dayMessages = loadMessages().filter(function (message) {
+    return dayKeyOf(message.time) === dayKey && message.type !== "summary";
+  });
+  let time = new Date().toISOString();
+  if (dayKey !== todayKey()) {
+    const last = new Date(dayMessages[dayMessages.length - 1].time);
+    time = new Date(last.getTime() + 1000).toISOString();
+  }
+
+  // 重新整理的話，先刪掉舊的總結
+  removeMessages(function (message) {
+    return message.type === "summary" && dayKeyOf(message.time) === dayKey;
+  });
+
+  const text =
+    "【總結】做了什麼：" + (summary.did || []).join("；") +
+    "。亮點：" + (summary.highlights || []).join("；") +
+    "。" + (summary.comment || "");
+  addMessage("theo", text, "summary", { time: time, summary: summary });
+}
+
+// 按「結束今天」
+async function endDay() {
+  currentDay = todayKey();
+  if (!hasEntries(currentDay)) {
+    alert("今天還沒寫東西，沒有東西可以整理喔。");
+    return;
+  }
+  if (hasSummary(currentDay) && !confirm("今天已經整理過了，要重新整理嗎？")) {
+    return;
+  }
+
+  endDayButton.disabled = true;
+  askTheoButton.disabled = true;
+  showMessages();
+  showTyping("正在整理今天……");
+
+  try {
+    await summarizeDay(currentDay);
+  } catch (e) {
+    alert(e.message);
+  }
+
+  endDayButton.disabled = false;
+  askTheoButton.disabled = false;
+  showMessages();
+}
+
+endDayButton.addEventListener("click", endDay);
+
+// 打開 App 時：昨天有寫日記、但忘了總結，就自動補做
+async function autoSummarizeYesterday() {
+  const yesterday = shiftDay(todayKey(), -1);
+  if (!hasEntries(yesterday) || hasSummary(yesterday)) return;
+  if (!loadSettings().apiKey) return;
+
+  try {
+    await summarizeDay(yesterday);
+    showNotice("昨天忘了按「結束今天」，我幫你整理好了", "看看", function () {
+      currentDay = yesterday;
+      showMessages();
+    });
+  } catch (e) {
+    // 失敗就算了，下次打開再試
+  }
+}
+
+// 在聊天區最上面顯示一則小通知（不會存起來）
+function showNotice(text, buttonText, onClick) {
+  if (currentDay !== todayKey()) return;
+  const notice = document.createElement("div");
+  notice.className = "reminder";
+  notice.innerHTML = '<svg class="icon"><use href="#icon-moon"/></svg><div></div>';
+  notice.querySelector("div").textContent = "Theo：" + text + " ";
+  const button = document.createElement("button");
+  button.className = "link-button";
+  button.textContent = buttonText;
+  button.addEventListener("click", onClick);
+  notice.querySelector("div").appendChild(button);
+  chat.prepend(notice);
+}
 
 // ---------- 設定頁 ----------
 const settingsPage = document.getElementById("settings-page");
@@ -365,13 +532,17 @@ backToTodayButton.addEventListener("click", function () {
   showMessages();
 });
 
-// 從背景切回 App 時，如果已經換日了，就跳到新的一天
+// 從背景切回 App 時，如果真的換日了：原本在看「今天」的話，就跳到新的一天
+let lastToday = todayKey();
 document.addEventListener("visibilitychange", function () {
-  if (document.visibilityState === "visible" && currentDay !== todayKey()) {
-    currentDay = todayKey();
-    showMessages();
-  }
+  if (document.visibilityState !== "visible") return;
+  const now = todayKey();
+  if (now === lastToday) return; // 沒換日，什麼都不用做
+  if (currentDay === lastToday) currentDay = now;
+  lastToday = now;
+  showMessages();
 });
 
 // ---------- 打開 App 時 ----------
 showMessages();
+autoSummarizeYesterday();

@@ -29,18 +29,28 @@ function saveMessages(messages) {
 // 新增一則訊息，回傳新增的那一則
 // role：誰說的（"me" 我／"theo" Theo）
 // type：類型（"entry" 日記／"reply" 回應／"reminder" 提醒／"summary" 總結）
-function addMessage(role, text, type) {
-  const message = {
+// extra：其他資料，例如 { time: 指定時間 }、{ summary: 總結內容 }
+function addMessage(role, text, type, extra) {
+  const message = Object.assign({
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     time: new Date().toISOString(),
     role: role,
     type: type,
     text: text,
-  };
+  }, extra);
   const messages = loadMessages();
   messages.push(message);
+  // 依時間排序（補做的總結可能會插在以前的日子）
+  messages.sort(function (a, b) { return a.time < b.time ? -1 : 1; });
   saveMessages(messages);
   return message;
+}
+
+// 刪掉符合條件的訊息，例如重新做總結時，刪掉舊的總結
+function removeMessages(shouldRemove) {
+  saveMessages(loadMessages().filter(function (message) {
+    return !shouldRemove(message);
+  }));
 }
 
 // ---------- 設定 ----------
