@@ -288,9 +288,9 @@ async function askTheo() {
   const settings = loadSettings();
   const request =
     "現在時間 " + formatTime(new Date()) + "。\n" +
-    "以下是她今天到目前為止的日記，也包含你之前的回應：\n\n" +
+    "以下是對方今天到目前為止的日記，也包含你之前的回應：\n\n" +
     diary + "\n\n" +
-    "請以 Theo 的身分回應她。重點放在你上次回應之後她新寫的內容，但可以連結今天稍早的事。";
+    "請以 Theo 的身分回應。重點放在你上次回應之後對方新寫的內容，但可以連結今天稍早的事。";
 
   try {
     const reply = await askAI(buildTheoPrompt(settings.personality), request);
@@ -325,12 +325,12 @@ async function summarizeDay(dayKey) {
   const diary = dayAsText(dayKey);
   const settings = loadSettings();
   const request =
-    "以下是她 " + dayKey + " 一整天的日記，也包含你當天的回應：\n\n" +
+    "以下是對方 " + dayKey + " 一整天的日記，也包含你當天的回應：\n\n" +
     diary + "\n\n" +
-    "請幫她整理這一天，用 JSON 回答，格式如下：\n" +
+    "請幫對方整理這一天，用 JSON 回答，格式如下：\n" +
     '{ "did": ["……"], "highlights": ["……"], "comment": "……" }\n' +
-    "- did：這天做了什麼，依時間順序，每項一句短短的話，只寫她做的事\n" +
-    "- highlights：這天的亮點，1 到 3 項，用你的語氣真心稱讚她\n" +
+    "- did：這天做了什麼，依時間順序，每項一句短短的話，只寫對方做的事\n" +
+    "- highlights：這天的亮點，1 到 3 項，用你的語氣真心稱讚對方\n" +
     "- comment：一句你對這天的總評，像朋友說的話";
 
   const answer = await askAI(buildTheoPrompt(settings.personality), request, null, { json: true });

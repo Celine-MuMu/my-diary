@@ -64,7 +64,7 @@ function loadSettings() {
   } catch (e) {}
   return {
     personality: saved.personality || 預設個性, // Theo 的個性
-    apiKey: saved.apiKey || "",                 // Gemini API 金鑰
+    apiKey: saved.apiKey || "",                 // Groq API 金鑰
   };
 }
 
