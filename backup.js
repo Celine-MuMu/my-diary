@@ -20,31 +20,48 @@ function collectBackup() {
   };
 }
 
-// 匯出：iPhone 上用分享選單（可以存到「檔案」或 AirDrop），不支援的話就直接下載
+// 匯出：iPhone 上用分享選單（可以存到「檔案」或 AirDrop）；不行的話改用下載
 async function exportBackup() {
   const data = collectBackup();
   const fileName = "theo-diary-backup-" + todayKey() + ".json";
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const file = new File([blob], fileName, { type: "application/json" });
+  const text = JSON.stringify(data, null, 2);
+  // iPhone 的分享選單不接受 JSON 類型的檔案，所以當成一般文字檔分享（內容一樣）
+  const file = new File([text], fileName, { type: "text/plain" });
 
-  try {
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+  let shared = false;
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
       await navigator.share({ files: [file], title: "Theo 日記備份" });
-    } else {
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = fileName;
-      link.click();
-      setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+      shared = true;
+    } catch (e) {
+      if (e.name === "AbortError") return; // 自己按了取消，不算失敗
+      // 其他錯誤（例如 iPhone 不允許）：改用下載
     }
-  } catch (e) {
-    if (e.name === "AbortError") return; // 自己按了取消，不算失敗
-    alert("匯出失敗：" + e.message);
-    return;
+  }
+
+  if (!shared) {
+    try {
+      downloadFile(text, fileName);
+    } catch (e) {
+      alert("匯出失敗：" + e.message);
+      return;
+    }
   }
 
   saveSettings({ lastBackup: new Date().toISOString() });
   showBackupStatus();
+}
+
+// 用下載的方式存檔（iPhone 會問要不要下載，存到「檔案」App 的「下載項目」）
+function downloadFile(text, fileName) {
+  const blob = new Blob([text], { type: "application/octet-stream" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(function () { URL.revokeObjectURL(link.href); }, 10000);
 }
 
 // 匯入：合併進目前的資料（不會刪掉現有的，重複的跳過）
