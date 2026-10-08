@@ -600,6 +600,39 @@ document.addEventListener("visibilitychange", function () {
   showMessages();
 });
 
+// ---------- 自動更新 ----------
+// 讓 Service Worker（sw.js）幫忙：每次打開都拿最新版，沒網路也能打開
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(function () {});
+}
+
+// 現在用的是哪個版本：看 index.html 裡 app.js 後面的 ?v=
+function currentVersion() {
+  const script = document.querySelector('script[src^="app.js"]');
+  return (script.getAttribute("src").match(/\?v=(\w+)/) || [])[1];
+}
+
+// 從背景切回來時，問 GitHub 有沒有新版本；有的話重新載入
+// （正在打字或開著其他頁面時先不載入，免得打到一半的字不見）
+async function checkForUpdate() {
+  try {
+    const response = await fetch("./", { cache: "no-store" });
+    const html = await response.text();
+    const latest = (html.match(/app\.js\?v=(\w+)/) || [])[1];
+    if (!latest || latest === currentVersion()) return;
+
+    const busy = input.value.trim() !== "" ||
+      document.querySelector(".page:not([hidden])") !== null;
+    if (!busy) location.reload();
+  } catch (e) {
+    // 沒網路就算了
+  }
+}
+
+document.addEventListener("visibilitychange", function () {
+  if (document.visibilityState === "visible") checkForUpdate();
+});
+
 // ---------- 打開 App 時 ----------
 checkGoalReminders(); // 看看有沒有要提醒的目標（goals.js）
 showMessages();
