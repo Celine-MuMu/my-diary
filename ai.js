@@ -82,18 +82,19 @@ function explainError(status, detailMessage) {
 }
 
 // 依序試每個模型，模型不行（找不到、太慢、太忙）就換下一個
+// 全部都不行時，優先回報「找不到模型」以外的原因（那通常才是真正的問題）
 const 可以換模型的錯誤 = [404, 408, 500, 503];
 async function tryModels(models, askOne) {
-  let lastError;
+  const errors = [];
   for (const model of models) {
     try {
       return await askOne(model);
     } catch (e) {
-      lastError = e;
       if (!可以換模型的錯誤.includes(e.status)) throw e; // 金鑰錯誤等問題，換模型也沒用
+      errors.push(e);
     }
   }
-  throw lastError;
+  throw errors.find(function (e) { return e.status !== 404; }) || errors[0];
 }
 
 // ============================================
@@ -183,10 +184,37 @@ async function pickGroqModels(apiKey) {
 // Gemini（備援）
 // ============================================
 // 都會「先思考再回答」；不用比較笨的 Lite 版
-const GEMINI_模型 = ["gemini-flash-latest", "gemini-2.5-flash"];
+// Gemini 的模型也常常改名，所以 App 會自動查目前有哪些 Flash 模型，挑最新的
+const GEMINI_預設模型 = ["gemini-flash-latest", "gemini-3.8-flash"]; // 查不到清單時用
+
+let gemini已挑好的模型 = null;
+async function pickGeminiModels(apiKey) {
+  if (gemini已挑好的模型) return gemini已挑好的模型;
+  try {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000", {
+      headers: { "x-goog-api-key": apiKey },
+    });
+    if (!response.ok) return GEMINI_預設模型;
+
+    const data = await response.json();
+    const flash = (data.models || [])
+      .filter(function (model) { return (model.supportedGenerationMethods || []).includes("generateContent"); })
+      .map(function (model) { return model.name.replace("models/", ""); })
+      // 只要一般的 Flash：不要 Lite（比較笨）、不要圖片／語音／實驗版
+      .filter(function (name) { return /^gemini-[\d.]+-flash$/.test(name); })
+      .sort(function (a, b) { return parseFloat(b.split("-")[1]) - parseFloat(a.split("-")[1]); }); // 版本新的排前面
+
+    // 先試「最新版」的別名，再試查到的最新版本
+    gemini已挑好的模型 = ["gemini-flash-latest"].concat(flash.slice(0, 1));
+    return gemini已挑好的模型;
+  } catch (e) {
+    return GEMINI_預設模型;
+  }
+}
 
 async function askGemini(systemPrompt, userText, apiKey, options) {
-  return tryModels(GEMINI_模型, async function (model) {
+  const models = await pickGeminiModels(apiKey);
+  return tryModels(models, async function (model) {
     const body = {
       system_instruction: { parts: [{ text: systemPrompt }] },
       contents: [{ role: "user", parts: [{ text: userText }] }],
@@ -202,6 +230,7 @@ async function askGemini(systemPrompt, userText, apiKey, options) {
     );
 
     if (!response.ok) {
+      if (response.status === 404) gemini已挑好的模型 = null; // 下次重新查模型清單
       // Gemini 金鑰錯誤有時候回 400
       const status = response.status === 400 ? 401 : response.status;
       throw explainError(status, data.error?.message);
